@@ -1,0 +1,35 @@
+name: Build
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout hadoop repository
+        uses: actions/checkout@v2
+        with:
+          repository: apache/hadoop
+
+      - name: Get SHA for hadoop repo
+        id: sha
+        run: echo "::set-output name=shortsha::$(cd $GITHUB_WORKSPACE && git log --pretty=format:'%h' -n 1)"
+
+      - name: Build Dev Docker
+        run: docker build -t hadoop-build dev-support/docker
+
+      - name: Build Hadoop inside Docker
+        run: |
+          docker run -v $PWD:/hadoop hadoop-build /bin/sh -c 'cd /hadoop && mvn -B -ntp package -Pdist,native -DskipTests -Dtar -Dmaven.javadoc.skip=true'
+
+      - name: rename build
+        run: mv hadoop-dist/target/hadoop-3.4.0-SNAPSHOT.tar.gz hadoop-dist/target/hadoop-3.4.0-SNAPSHOT-${{ steps.sha.outputs.shortsha }}.tar.gz
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "final"
+          prerelease: false
+          title: "Build"
+          files: hadoop-dist/target/hadoop*gz
