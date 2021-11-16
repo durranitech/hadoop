@@ -24,7 +24,7 @@ jobs:
           docker run -v $PWD:/hadoop hadoop-build /bin/sh -c 'cd /hadoop && mvn -B -ntp package -Pdist,native -DskipTests -Dtar -Dmaven.javadoc.skip=true'
 
       - name: rename build
-        run: mv hadoop-dist/target/hadoop-3.4.0-SNAPSHOT.tar.gz hadoop-dist/target/hadoop-3.4.0-SNAPSHOT-${{ steps.sha.outputs.shortsha }}.tar.gz
+        run: sudo mv hadoop-dist/target/hadoop-3.4.0-SNAPSHOT.tar.gz hadoop-dist/target/hadoop-3.4.0-SNAPSHOT-${{ steps.sha.outputs.shortsha }}.tar.gz
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
